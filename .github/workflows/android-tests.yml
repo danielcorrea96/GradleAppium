@@ -45,17 +45,20 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: Pixel 6
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          force-avd-creation: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-boot-anim
           disable-animations: true
           script: |
-            echo "Emulator started. Installing calculator APKs..."
-            adb install-multiple calculator-base.apk calculator-split.apk
-            adb shell am start -n com.google.android.calculator/com.android.calculator2.Calculator
-            sleep 3
+            echo "Waiting for device to be ready..."
+            adb wait-for-device
+            adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+            echo "Device is ready!"
+
+            echo "Installing calculator APKs..."
+            adb install-multiple calculator-base.apk calculator-split.apk || echo "APK install failed, continuing..."
 
             echo "Starting Appium server in background..."
-            appium &
+            nohup appium > /tmp/appium.log 2>&1 &
             APPIUM_PID=$!
             echo "Appium PID: $APPIUM_PID"
 
@@ -65,7 +68,7 @@ jobs:
                 echo "Appium is ready!"
                 break
               fi
-              echo "Waiting... ($i/30)"
+              echo "Waiting for Appium... ($i/30)"
               sleep 2
             done
 
