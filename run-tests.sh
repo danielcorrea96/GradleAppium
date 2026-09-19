@@ -6,8 +6,8 @@ adb wait-for-device
 adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
 echo "Device is ready!"
 
-echo "Installing calculator APKs..."
-adb install-multiple calculator-base.apk calculator-split.apk || echo "APK install failed, continuing..."
+echo "Installing calculator APK..."
+adb install -r calculator-monolithic.apk || echo "APK install failed, continuing..."
 
 echo "Starting Appium server in background..."
 nohup appium > /tmp/appium.log 2>&1 &

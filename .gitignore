@@ -14,5 +14,10 @@ target/
 # Old APK (replaced by calculator APKs)
 # calculadora.apk
 
+# Secrets / local env (nunca subir credenciales BrowserStack)
+.env
+*.env
+bs-app-url.txt
+
 # Gradle wrapper jar
 gradle/wrapper/gradle-wrapper.jar

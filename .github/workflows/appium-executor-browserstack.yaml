@@ -1,0 +1,86 @@
+name: Appium Executor - BrowserStack
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      device:
+        description: 'BrowserStack device (deviceName)'
+        required: false
+        default: 'Samsung Galaxy S23'
+      osVersion:
+        description: 'BrowserStack OS version (osVersion)'
+        required: false
+        default: '13.0'
+      app:
+        description: 'App under test (bs://... or custom_id)'
+        required: false
+        default: 'CalculatorApp'
+
+env:
+  DEVICE: ${{ inputs.device || 'Samsung Galaxy S23' }}
+  OS_VERSION: ${{ inputs.osVersion || '13.0' }}
+  APP_ID: ${{ inputs.app || 'CalculatorApp' }}
+
+jobs:
+  appium-browserstack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Upload APK to BrowserStack
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          if [ -z "$BROWSERSTACK_USERNAME" ] || [ -z "$BROWSERSTACK_ACCESS_KEY" ]; then
+            echo "::error::Define los secrets BROWSERSTACK_USERNAME y BROWSERSTACK_ACCESS_KEY en Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          echo "Uploading calculator-monolithic.apk (custom_id=CalculatorApp)..."
+          curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+            -X POST https://api-cloud.browserstack.com/app-automate/upload \
+            -F file=@calculator-monolithic.apk \
+            -F custom_id=CalculatorApp
+
+      - name: Run tests on BrowserStack
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test \
+            -Dexecution=browserstack \
+            -DdeviceName="$DEVICE" \
+            -DosVersion="$OS_VERSION" \
+            -Dapp="$APP_ID" \
+            -Dbs.buildName="bs-run-${{ github.run_number }}"
+
+      - name: Upload Serenity Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serenity-reports-browserstack
+          path: target/serenity-reports/
+          retention-days: 14
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-browserstack
+          path: build/test-results/test/
+          retention-days: 14

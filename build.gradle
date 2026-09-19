@@ -29,6 +29,19 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty 'serenity.project.name', 'GradleAppium'
+    // Propaga el target y las caps a los tests (permite -Dexecution=...):
+    // ./gradlew test -Dexecution=local
+    // ./gradlew test -Dexecution=browserstack -DdeviceName="Samsung Galaxy S23" -DosVersion="13.0" -Dapp=bs://...
+    for (key in ['execution', 'hub.url', 'platformName', 'automationName', 'deviceName',
+                 'osVersion', 'app', 'appPackage', 'appActivity', 'noReset',
+                 'autoGrantPermissions', 'newCommandTimeout', 'implicitWait',
+                 'browserstack.user', 'browserstack.key',
+                 'bs.projectName', 'bs.buildName', 'bs.sessionName', 'bs.appiumVersion']) {
+        String val = System.getProperty(key)
+        if (val != null) {
+            systemProperty key, val
+        }
+    }
 }
 
 serenity {

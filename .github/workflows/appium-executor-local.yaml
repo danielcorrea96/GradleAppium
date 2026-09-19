@@ -1,4 +1,4 @@
-name: Android Appium Tests
+name: Appium Executor - Local
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  appium-tests:
+  appium-local:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -21,6 +21,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,7 +47,7 @@ jobs:
           arch: x86_64
           profile: pixel
           force-avd-creation: true
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-boot-anim
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: bash run-tests.sh
 
@@ -54,7 +55,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: serenity-reports
+          name: serenity-reports-local
           path: target/serenity-reports/
           retention-days: 14
 
@@ -62,6 +63,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-local
           path: build/test-results/test/
           retention-days: 14
