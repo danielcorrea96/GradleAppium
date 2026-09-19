@@ -1,0 +1,18 @@
+# Build output
+build/
+target/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Old APK (replaced by calculator APKs)
+# calculadora.apk
+
+# Gradle wrapper jar
+gradle/wrapper/gradle-wrapper.jar
